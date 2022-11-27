@@ -1,15 +1,33 @@
 import { GetStaticProps } from "next";
 import React from "react";
 import Header from "../../components/Header";
+import PostBody from "../../components/PostBody";
 import { sanityClient, urlFor } from "../../sanity";
 import { Post } from "../../typings";
-import PortableText from "react-portable-text";
+import { useForm, SubmitHandler} from "react-hook-form";
+
+interface IFormInput {
+  _id: string;
+  name: string;
+  email: string;
+  comment: string;
+}
+
 interface Props {
   post: Post;
 }
 
 function Post({ post }: Props) {
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+
+  } = useForm<IFormInput>();
+
   return (
+
     <main>
       <Header bgCol="bg-white" />
 
@@ -19,63 +37,60 @@ function Post({ post }: Props) {
         alt=""
       />
 
-      <article className="max-w-3xl mx-auto p-5">
-        <h1 className="text-3xl mt-10 mb-3 ">{post.title}</h1>
-        <h2 className="text-xl font-light text-gray-500 mb-2">
-          {post.description}
-        </h2>
+      <PostBody post={post} />
 
-        <div className="flex items-center gap-5 mt-5 space-x-0">
-          <img
-            className="h-10 w-10 rounded-full"
-            src={urlFor(post.author.image).url()!}
-            alt="photography that represents an author of the post"
+      <hr className="max-w-lg my-5 mx-auto border border-yellow-500" />
+
+      <form className="flex flex-col p-5 my-10 max-w-2xl mx-auto mb-10 gap-2">
+        <h3 className="text-2xl text-yellow-500 font-light">Enjoy the read?</h3>
+        <h4 className="text-3xl font-bold ml-5 ">
+          Share your ideas with millions of readers!
+        </h4>
+        <hr className="max-w-7xl  border-gray-800 border-2 my-3" />
+
+        <input {...register("_id")} type="hidden" name="_id" value={post._id} />
+        <label className="label" htmlFor="name">
+          <span>Name</span>
+          <input
+            {...register("name", { required: true })}
+            id="name"
+            className="input shadow-md border border-gray-300 ring-yellow-500 outline-none focus:ring"
+            placeholder="John Kennedy"
+            type="text"
           />
-          <p suppressHydrationWarning className="font-extralight text-sm ">
-            Blog post by{" "}
-            <span className="text-gray-900 font-semibold">
-              {post.author.name}
-            </span>{" "}
-            - Published at {new Date(post._createdAt).toLocaleString()}
-          </p>
+        </label>
+        <label className="label" htmlFor="email">
+          <span>Email</span>
+          <input
+            {...register("email", { required: true })}
+            id="email"
+            className="input shadow-md border border-gray-300 ring-yellow-500 outline-none focus:ring"
+            placeholder="john.kennedy@gmail.com"
+            type="text"
+          />
+        </label>
+        <label className="label " htmlFor="comment">
+          <span>Comment</span>
+          <textarea
+            {...register("comment", { required: true })}
+            id="comment"
+            className="input  shadow-md border border-gray-300 ring-yellow-500 outline-none focus:ring"
+            placeholder="Amazing read! Shed new light on this matter. thank you 🖤"
+            rows={6}
+          />
+        </label>
+
+        {/* errors will return when field validation fails */}
+        <div className="flex flex-col gap-y-2">
+          { <span  className="text-red-800 font-semibold ">Name field is required <span className="font-normal">(╯‵□′)╯︵┻━┻</span></span>}
+
+          { <span className="text-red-800 font-semibold ">Email field is required <span className="font-normal">(╯‵□′)╯︵┻━┻</span></span>}
+
+          {<span className="text-red-800 font-semibold ">Comment field is required <span className="font-normal">(╯‵□′)╯︵┻━┻</span></span>}
         </div>
 
-        <div>
-          <PortableText
-            className=""
-            dataset={process.env.NEXT_PUBLIC_SANITY_DATASET}
-            projectId={process.env.NEXT_PUBLIC_SANITY_PROJECT_ID}
-            content={post.body}
-            // serializers points how to render certain types of content
-            serializers={{
-              h1: (props: any) => (
-                <h1 className="text-7xl font-bold my-5" {...props} />
-              ),
-              h2: (props: any) => (
-                <h2 className="text-2xl font-bold my-5" {...props} />
-              ),
-              li: ({ children }: any) => (
-                <li className="ml-4 list-disc">{children}</li>
-              ),
-              link: ({ href, children }: any) => (
-                <a href={href} className="text-blue-500 hover:underline">
-                  {children}
-                </a>
-              ),
-              image: (props: any) => {
-                return (
-                  <img
-                    className="w-full my-5"
-                    src={urlFor(props).url()!}
-                    alt=""
-                  />
-                );
-              },
-              normal: (props: any) => <p className="text-lg my-5" {...props} />,
-            }}
-          />
-        </div>
-      </article>
+        <button className=" shadow-md rounded-md px-3 py-2  bg-gray-800 text-yellow-500 uppercase font-light text-lg tracking-widest"> Submit comment</button>
+      </form>
     </main>
   );
 }
